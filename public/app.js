@@ -1002,8 +1002,17 @@ function initApp() {
     DOM.wsBridgeInput.value = state.wsGatewayUrl;
     
     DOM.btnSaveBridge.addEventListener('click', () => {
-      const gatewayVal = DOM.wsBridgeInput.value.trim();
+      let gatewayVal = DOM.wsBridgeInput.value.trim();
+      
+      // Auto-sanitize copy-pasted HTTP protocols to WebSocket protocols
+      if (gatewayVal.startsWith('http://')) {
+        gatewayVal = gatewayVal.replace('http://', 'ws://');
+      } else if (gatewayVal.startsWith('https://')) {
+        gatewayVal = gatewayVal.replace('https://', 'wss://');
+      }
+      
       state.wsGatewayUrl = gatewayVal;
+      DOM.wsBridgeInput.value = gatewayVal; // Update input field to show the sanitized wss:// protocol
       
       if (gatewayVal) {
         localStorage.setItem('terratile_ws_gateway', gatewayVal);
