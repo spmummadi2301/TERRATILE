@@ -312,9 +312,17 @@ async def handle_connection(websocket, path=None):
                 "logs": telemetry_logs
             })
 
+def process_request(path, request_headers):
+    # Intercept HTTP GET health checks from Render's load balancer
+    # and respond with 200 OK so that Render keeps the container alive and active!
+    if "upgrade" not in request_headers and "Upgrade" not in request_headers:
+        import http
+        return http.HTTPStatus.OK, [("Content-Type", "text/plain")], b"OK"
+    return None
+
 async def run_ws_server():
     print(f"[WS] Real-time engine starting on ws://localhost:{PORT_WS}")
-    async with websockets.serve(handle_connection, "0.0.0.0", PORT_WS):
+    async with websockets.serve(handle_connection, "0.0.0.0", PORT_WS, process_request=process_request):
         await asyncio.Future()  # run forever
 
 def main():
