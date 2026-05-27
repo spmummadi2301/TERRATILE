@@ -312,12 +312,12 @@ async def handle_connection(websocket, path=None):
                 "logs": telemetry_logs
             })
 
-def process_request(path, request_headers):
+async def process_request(connection, request):
     # Intercept HTTP GET health checks from Render's load balancer
     # and respond with 200 OK so that Render keeps the container alive and active!
-    if "upgrade" not in request_headers and "Upgrade" not in request_headers:
-        import http
-        return http.HTTPStatus.OK, [("Content-Type", "text/plain")], b"OK"
+    if request.headers.get("Upgrade") is None:
+        from http import HTTPStatus
+        return HTTPStatus.OK, {"Content-Type": "text/plain"}, b"OK"
     return None
 
 async def run_ws_server():
