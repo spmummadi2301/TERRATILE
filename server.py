@@ -12,8 +12,9 @@ import socket
 import websockets
 
 # Configuration
+IS_PROD = "PORT" in os.environ
 PORT_HTTP = 5173
-PORT_WS = 5174
+PORT_WS = int(os.environ.get("PORT", 5174))
 GRID_SIZE = 40  # 40x40 grid = 1600 tiles
 COOLDOWN_TIME = 0.8  # 800ms cooldown per claim
 
@@ -317,16 +318,24 @@ async def run_ws_server():
         await asyncio.Future()  # run forever
 
 def main():
-    # Start HTTP Static Server in a separate thread
-    http_thread = threading.Thread(target=run_http_server, daemon=True)
-    http_thread.start()
-    
-    # Start WebSocket Server in the main thread async loop
-    try:
-        asyncio.run(run_ws_server())
-    except KeyboardInterrupt:
-        print("\n[SYS] Server shutting down.")
-        sys.exit(0)
+    if IS_PROD:
+        print(f"[SYS] Cloud environment detected. Starting WebSocket gateway on port {PORT_WS}...")
+        try:
+            asyncio.run(run_ws_server())
+        except KeyboardInterrupt:
+            print("\n[SYS] Server shutting down.")
+            sys.exit(0)
+    else:
+        # Start HTTP Static Server in a separate thread
+        http_thread = threading.Thread(target=run_http_server, daemon=True)
+        http_thread.start()
+        
+        # Start WebSocket Server in the main thread async loop
+        try:
+            asyncio.run(run_ws_server())
+        except KeyboardInterrupt:
+            print("\n[SYS] Server shutting down.")
+            sys.exit(0)
 
 if __name__ == "__main__":
     main()
