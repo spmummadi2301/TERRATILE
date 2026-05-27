@@ -47,7 +47,10 @@ let state = {
   
   // Network Telemetry
   pingInterval: null,
-  lastPingTimestamp: 0
+  lastPingTimestamp: 0,
+  
+  // Custom Gateway
+  wsGatewayUrl: localStorage.getItem('terratile_ws_gateway') || ''
 };
 
 // DOM References
@@ -91,7 +94,10 @@ const DOM = {
   
   btnZoomIn: document.getElementById('btn-zoom-in'),
   btnZoomOut: document.getElementById('btn-zoom-out'),
-  btnZoomReset: document.getElementById('btn-zoom-reset')
+  btnZoomReset: document.getElementById('btn-zoom-reset'),
+
+  wsBridgeInput: document.getElementById('ws-bridge-input'),
+  btnSaveBridge: document.getElementById('btn-save-bridge')
 };
 
 // --- 3. WEB AUDIO SYNTHESIZER ---
@@ -360,7 +366,7 @@ function connectWS() {
   // Dynamically target WS port based on active web host
   const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsHost = window.location.hostname || 'localhost';
-  const wsUri = `${wsProtocol}//${wsHost}:5174`;
+  const wsUri = state.wsGatewayUrl || `${wsProtocol}//${wsHost}:5174`;
   
   setConnectionStatus('connecting');
   
@@ -990,6 +996,27 @@ function initApp() {
   // Wire components
   initViewportEngine();
   initProfileConfig();
+
+  // System Bridge Gateway
+  if (DOM.wsBridgeInput) {
+    DOM.wsBridgeInput.value = state.wsGatewayUrl;
+    
+    DOM.btnSaveBridge.addEventListener('click', () => {
+      const gatewayVal = DOM.wsBridgeInput.value.trim();
+      state.wsGatewayUrl = gatewayVal;
+      
+      if (gatewayVal) {
+        localStorage.setItem('terratile_ws_gateway', gatewayVal);
+        showToast('System bridge configured.', 'success');
+      } else {
+        localStorage.removeItem('terratile_ws_gateway');
+        showToast('Bridge reset to dynamic local routing.', 'info');
+      }
+      
+      playSynthStamp();
+      connectWS();
+    });
+  }
   
   // Start background WS pipelines
   connectWS();
