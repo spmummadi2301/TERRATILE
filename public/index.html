@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TERRATILE — Real-Time Territory Matrix</title>
+  
+  <!-- Modern Geometric Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Audio Initial Permission Overlay (Optional sound confirmation) -->
+  <div id="audio-consent" class="audio-consent">
+    <div class="consent-box">
+      <div class="consent-header">SYSTEM ACOUSTICS</div>
+      <p>Initialize real-time synthetic sound feedback for grid actions?</p>
+      <div class="consent-buttons">
+        <button id="btn-sound-on" class="btn btn-primary">ENABLE SOUNDS</button>
+        <button id="btn-sound-off" class="btn btn-secondary">SILENT MODE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Overlay -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Hero Welcome Overlay -->
+  <div id="hero-overlay" class="hero-overlay">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+      <header class="hero-header">
+        <span class="hero-logo">TERRATILE</span>
+        <div class="hero-status">
+          <span class="pulse-dot"></span>
+          <span id="hero-online-count">SYNCING MATRIX...</span>
+        </div>
+      </header>
+      
+      <main class="hero-main">
+        <h1 class="hero-title">THIS MAP BELONGS<br>TO NO ONE...YET</h1>
+        <p class="hero-subtitle">Until you click.</p>
+        
+        <button id="btn-enter-grid" class="btn btn-large">
+          <span>ENTER THE GRID</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </main>
+
+      <footer class="hero-footer">
+        <div class="ticker-preview-label">LIVE MATRIX ACTIVITY</div>
+        <div id="hero-ticker" class="ticker-preview-text">Awaiting network initial sync...</div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Main System App Layout -->
+  <div class="app-container">
+    
+    <!-- Top System Header Bar -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="logo">TERRATILE</span>
+        <span class="separator">/</span>
+        <span class="sub-logo">TACTICAL CONQUEST ENGINE</span>
+      </div>
+      <div class="header-right">
+        <!-- Live Status Metrics -->
+        <div class="meta-indicator">
+          <span class="meta-label">LATENCY</span>
+          <span id="latency-val" class="meta-value">-- ms</span>
+        </div>
+        <div class="meta-indicator">
+          <span class="meta-label">CONQUERED</span>
+          <span id="conquered-ratio" class="meta-value">0%</span>
+        </div>
+        <div class="meta-indicator">
+          <span class="meta-label">OPERATORS</span>
+          <span id="live-operators" class="meta-value">0</span>
+        </div>
+        <div class="system-status">
+          <span class="status-dot online" id="conn-status-dot"></span>
+          <span id="conn-status-text" class="status-text">DISCONNECTED</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="workspace">
+      
+      <!-- Left Panel: Profile settings and Matrix Analytics -->
+      <aside class="sidebar-left">
+        
+        <!-- User Aura Selection -->
+        <section class="panel panel-aura">
+          <h2 class="panel-title">YOUR DIGITAL AURA</h2>
+          <p class="panel-subtitle">Your color becomes you</p>
+          
+          <div class="aura-config">
+            <div class="form-group">
+              <label for="player-name-input">OPERATOR NICKNAME</label>
+              <input type="text" id="player-name-input" placeholder="ASSIGN CODENAME" maxlength="15">
+            </div>
+            
+            <div class="form-group">
+              <label>STRATEGIC TONE</label>
+              <div class="aura-colors-grid" id="aura-colors-grid">
+                <!-- Colors injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Profile Live Preview -->
+            <div class="aura-preview-card">
+              <div class="preview-dot" id="aura-preview-dot"></div>
+              <div class="preview-details">
+                <span id="aura-preview-name" class="preview-name">OPERATOR</span>
+                <span class="preview-tagline">Legacy status active</span>
+              </div>
+            </div>
+
+            <button id="btn-update-profile" class="btn btn-secondary btn-full">
+              UPDATE IDENTITY
+            </button>
+            <button id="btn-reset-identity" class="btn btn-secondary btn-full" style="margin-top: 8px; border-color: var(--color-clay); color: var(--color-clay);">
+              GENERATE NEW SESSION
+            </button>
+          </div>
+        </section>
+
+        <!-- Top Conquerors Leaderboard -->
+        <section class="panel panel-leaderboard">
+          <h2 class="panel-title">TOP CONQUERORS</h2>
+          <div class="leaderboard-header">
+            <span>RANK / OPERATOR</span>
+            <span>TILES SECURED</span>
+          </div>
+          <div class="leaderboard-terminal" id="leaderboard-list">
+            <!-- Dynamic Terminal Leaderboard elements injected here -->
+            <div class="leaderboard-empty">Waiting for tactical scans...</div>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- Central Strategic Board Area -->
+      <main class="grid-workspace">
+        <div class="board-header">
+          <div class="board-title-group">
+            <h1 class="board-title">LIVE TERRITORY MATRIX</h1>
+            <span class="coordinates-label" id="current-coords-indicator">AXIS: OUT OF RANGE</span>
+          </div>
+          
+          <!-- Viewport Controls -->
+          <div class="viewport-controls">
+            <button id="btn-zoom-in" class="btn btn-icon" title="Zoom In (Wheel)">+</button>
+            <button id="btn-zoom-reset" class="btn btn-icon" title="Reset View">1:1</button>
+            <button id="btn-zoom-out" class="btn btn-icon" title="Zoom Out (Wheel)">-</button>
+          </div>
+        </div>
+
+        <!-- The actual panning/zooming grid viewport -->
+        <div class="viewport-container" id="grid-viewport">
+          <!-- Guide lines (blueprint theme) -->
+          <div class="axis-guide axis-x" id="axis-guide-x"></div>
+          <div class="axis-guide axis-y" id="axis-guide-y"></div>
+          
+          <!-- Draggable Grid Canvas -->
+          <div class="grid-canvas" id="grid-canvas">
+            <!-- Row headers and Column headers can be positioned mathematically, or tiles can be inside a CSS Grid -->
+            <!-- 1600 tiles will be generated dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- Bottom Tile Control Panel / Action HUD -->
+        <div class="action-hud">
+          <div class="hud-tile-info">
+            <div class="hud-coord-badge" id="hud-tile-coord">--</div>
+            <div class="hud-status-wrapper">
+              <span class="hud-status-label">OWNERSHIP STATUS</span>
+              <span class="hud-status-value" id="hud-tile-status">NO SELECTION</span>
+            </div>
+          </div>
+          
+          <div class="hud-action">
+            <button id="btn-capture-tile" class="btn btn-primary" disabled>
+              <span>MARK TERRITORY</span>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Panel: Live activity feed -->
+      <aside class="sidebar-right">
+        
+        <!-- Live Feed Ticker -->
+        <section class="panel panel-livefeed">
+          <div class="panel-header-row">
+            <h2 class="panel-title">LIVE TELEMETRY</h2>
+            <div class="status-indicator-mini">
+              <span class="pulse-dot green"></span>
+              <span class="ticker-rate">SECURE FEED</span>
+            </div>
+          </div>
+          <div class="live-feed-ticker" id="live-feed-ticker">
+            <!-- Real-time activity entries will be appended here -->
+          </div>
+        </section>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

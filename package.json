@@ -1,0 +1,14 @@
+﻿{
+  "name": "tile-capture-realtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tile Capture Live with Supabase realtime synchronization",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
