@@ -235,6 +235,38 @@
     </div>
   </div>
 
+  <!-- Tactical Victory Popup Modal -->
+  <div id="victory-modal" class="victory-modal">
+    <div class="victory-box">
+      <div class="victory-header">CONQUEST COMPLETE</div>
+      <h1 class="victory-title">VICTORY SECURED</h1>
+      <p class="victory-subtitle">The matrix has been controlled.</p>
+      
+      <div class="victory-card">
+        <div class="victory-badge" id="vic-avatar"></div>
+        <div class="victory-details">
+          <span class="vic-operator-label">DOMINANT OPERATOR</span>
+          <span class="vic-operator-name" id="vic-name">UNASSIGNED</span>
+        </div>
+      </div>
+      
+      <div class="victory-stats">
+        <div class="vic-stat-box">
+          <span class="vic-stat-label">TILES CAPTURED</span>
+          <span class="vic-stat-value" id="vic-score">0</span>
+        </div>
+        <div class="vic-stat-box">
+          <span class="vic-stat-label">MAP CONTROL</span>
+          <span class="vic-stat-value" id="vic-control">0%</span>
+        </div>
+      </div>
+      
+      <button id="btn-victory-close" class="btn btn-primary btn-full">
+        REVIEW CARTOGRAPHY BOARD
+      </button>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

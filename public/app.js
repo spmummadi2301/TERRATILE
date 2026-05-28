@@ -50,7 +50,10 @@ let state = {
   lastPingTimestamp: 0,
   
   // Custom Gateway
-  wsGatewayUrl: localStorage.getItem('terratile_ws_gateway') || ''
+  wsGatewayUrl: localStorage.getItem('terratile_ws_gateway') || '',
+  
+  // Game End State
+  victoryDeclared: false
 };
 
 // DOM References
@@ -97,7 +100,14 @@ const DOM = {
   btnZoomReset: document.getElementById('btn-zoom-reset'),
 
   wsBridgeInput: document.getElementById('ws-bridge-input'),
-  btnSaveBridge: document.getElementById('btn-save-bridge')
+  btnSaveBridge: document.getElementById('btn-save-bridge'),
+
+  victoryModal: document.getElementById('victory-modal'),
+  btnVictoryClose: document.getElementById('btn-victory-close'),
+  vicName: document.getElementById('vic-name'),
+  vicScore: document.getElementById('vic-score'),
+  vicControl: document.getElementById('vic-control'),
+  vicAvatar: document.getElementById('vic-avatar')
 };
 
 // --- 3. WEB AUDIO SYNTHESIZER ---
@@ -200,6 +210,59 @@ function playSynthWarning() {
   
   osc.start(ctx.currentTime);
   osc.stop(ctx.currentTime + 0.15);
+}
+
+// Synthesize an epic retro arpeggio resolved by a deep stamp note (for victories)
+function playSynthVictoryChime() {
+  if (!state.soundEnabled || !state.audioCtx) return;
+  if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+  
+  const ctx = state.audioCtx;
+  const now = ctx.currentTime;
+  
+  // Rising major triad arpeggio: C4, E4, G4, C5, E5, G5, C6
+  const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+  
+  notes.forEach((freq, idx) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+    
+    gain.gain.setValueAtTime(0, now + idx * 0.08);
+    gain.gain.linearRampToValueAtTime(0.08, now + idx * 0.08 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+    
+    osc.start(now + idx * 0.08);
+    osc.stop(now + idx * 0.08 + 0.35);
+  });
+  
+  // Final heavy bass stamp sound to resolve the chime
+  setTimeout(() => playSynthStamp(), 560);
+}
+
+// Declare a Conquest Victory, populate stats card, play synthesizers and trigger modal popup
+function declareVictory(victor) {
+  state.victoryDeclared = true;
+  
+  DOM.vicName.innerText = victor.name;
+  DOM.vicScore.innerText = victor.score;
+  
+  const totalTiles = state.gridSize * state.gridSize;
+  const controlPercent = Math.round((victor.score / totalTiles) * 100);
+  DOM.vicControl.innerText = `${controlPercent}%`;
+  
+  DOM.vicAvatar.style.backgroundColor = victor.color;
+  DOM.vicAvatar.style.borderColor = victor.color;
+  
+  DOM.victoryModal.classList.add('active');
+  
+  playSynthVictoryChime();
+  showToast(`Conquest Victory: Operator ${victor.name} has secured matrix dominance!`, 'success');
 }
 
 // --- 4. NAVIGATION & ZOOM LOGIC (GRID VIEWPORT) ---
@@ -793,6 +856,34 @@ function syncGlobalHUDMetrics() {
     if (p.online_status === 'online') activeCount++;
   });
   DOM.liveOperators.innerText = activeCount;
+  
+  // --- VICTORY CONDITION CHECKS ---
+  let victor = null;
+  
+  // Victory Option A: Any player reaches 100 tiles (Highly visible victory target for easy testing!)
+  state.players.forEach(p => {
+    if (p.score >= 100) {
+      victor = p;
+    }
+  });
+  
+  // Victory Option B: All 1,600 tiles captured (Majority score wins!)
+  if (conqueredCount === totalTiles && totalTiles > 0) {
+    let maxScore = -1;
+    state.players.forEach(p => {
+      if (p.score > maxScore) {
+        maxScore = p.score;
+        victor = p;
+      }
+    });
+  }
+  
+  if (victor && !state.victoryDeclared) {
+    declareVictory(victor);
+  } else if (!victor) {
+    // Reset victory declared flag if grid resets or scores drop below threshold
+    state.victoryDeclared = false;
+  }
 }
 
 // --- 9. PROFILE IDENTITY SETUP CONTROLLER ---
@@ -996,6 +1087,14 @@ function initApp() {
   // Wire components
   initViewportEngine();
   initProfileConfig();
+
+  // Victory Modal close button listener
+  if (DOM.btnVictoryClose) {
+    DOM.btnVictoryClose.addEventListener('click', () => {
+      DOM.victoryModal.classList.remove('active');
+      playSynthClick();
+    });
+  }
 
   // System Bridge Gateway
   if (DOM.wsBridgeInput) {
