@@ -681,7 +681,7 @@ function buildGridCanvasDOM(tilesList) {
 }
 
 // Perform focused DOM styling refreshes on a single grid tile
-function updateSingleTileDOM(tileId, shouldAnimate, updateNeighbors = true) {
+function updateSingleTileDOM(tileId, shouldAnimate) {
   const tile = state.gridTiles[tileId];
   const el = document.getElementById(`tile-${tileId}`);
   if (!el) return;
@@ -705,89 +705,15 @@ function updateSingleTileDOM(tileId, shouldAnimate, updateNeighbors = true) {
         el.classList.remove('tile-pulse');
       }, 500);
     }
-    
-    // Calculate borders based on contiguous neighbors of the SAME owner!
-    const x = tile.x;
-    const y = tile.y;
-    
-    const getNeighborOwner = (nx, ny) => {
-      if (nx < 0 || nx >= 40 || ny < 0 || ny >= 40) return null;
-      const nId = ny * 40 + nx;
-      return state.gridTiles[nId]?.owner_id || null;
-    };
-    
-    const owner = tile.owner_id;
-    const northOwner = getNeighborOwner(x, y - 1);
-    const southOwner = getNeighborOwner(x, y + 1);
-    const westOwner = getNeighborOwner(x - 1, y);
-    const eastOwner = getNeighborOwner(x + 1, y);
-    
-    // If neighbor has the SAME owner, hide that border inside the territory!
-    // Otherwise, draw a clean dark boundary (Swiss architecture border)
-    if (northOwner === owner) {
-      el.style.borderTopColor = 'transparent';
-      el.style.borderTopWidth = '1px';
-    } else {
-      el.style.borderTopColor = 'var(--text-primary)';
-      el.style.borderTopWidth = '2px';
-    }
-    
-    if (southOwner === owner) {
-      el.style.borderBottomColor = 'transparent';
-      el.style.borderBottomWidth = '1px';
-    } else {
-      el.style.borderBottomColor = 'var(--text-primary)';
-      el.style.borderBottomWidth = '2px';
-    }
-    
-    if (westOwner === owner) {
-      el.style.borderLeftColor = 'transparent';
-      el.style.borderLeftWidth = '1px';
-    } else {
-      el.style.borderLeftColor = 'var(--text-primary)';
-      el.style.borderLeftWidth = '2px';
-    }
-    
-    if (eastOwner === owner) {
-      el.style.borderRightColor = 'transparent';
-      el.style.borderRightWidth = '1px';
-    } else {
-      el.style.borderRightColor = 'var(--text-primary)';
-      el.style.borderRightWidth = '2px';
-    }
   } else {
     el.className = 'grid-tile';
     el.style.backgroundColor = 'transparent';
     labelEl.innerText = '';
-    
-    // Reset to default grid borders for unclaimed tiles
-    el.style.borderTop = '';
-    el.style.borderBottom = '';
-    el.style.borderLeft = '';
-    el.style.borderRight = '';
   }
   
   // Preserve selected border wrapper if targeted
   if (state.selectedTileId === tileId) {
     el.classList.add('selected');
-  }
-  
-  // Recalculate borders for neighbors to keep boundaries perfectly in sync
-  if (updateNeighbors && tile) {
-    const x = tile.x;
-    const y = tile.y;
-    
-    const updateNeighborBorderOnly = (nx, ny) => {
-      if (nx >= 0 && nx < 40 && ny >= 0 && ny < 40) {
-        const nId = ny * 40 + nx;
-        updateSingleTileDOM(nId, false, false);
-      }
-    };
-    
-    updateNeighborBorderOnly(x, y - 1);
-    updateNeighborBorderOnly(x, y + 1);
-    updateNeighborBorderOnly(x - 1, y);
-    updateNeighborBorderOnly(x + 1, y);
   }
 }
 

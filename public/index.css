@@ -893,6 +893,7 @@ input, button {
 
 /* Claimed Tile Visuals */
 .grid-tile.claimed {
+  border-color: transparent;
   /* Claimed visual tone comes from background-color assigned in JS */
 }
 
