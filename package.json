@@ -1,8 +1,8 @@
 {
-  "name": "tile-capture-realtime",
+  "name": "terratile",
   "version": "1.0.0",
   "private": true,
-  "description": "Tile Capture Live with Supabase realtime synchronization",
+  "description": "TERRATILE — Tactical Real-Time Conquest Engine",
   "main": "server.js",
   "scripts": {
     "build": "echo 'Building static console...'",

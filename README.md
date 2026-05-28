@@ -69,9 +69,9 @@ To run the full architecture locally on your machine:
 
 TERRATILE is optimized for standard, zero-config cloud deployments:
 
-### 1. Frontend (Vercel)
-*   **Deploy**: Import the GitHub repo into Vercel. Vercel detects `vercel.json` and publishes it as a static output instantly.
-*   **Live Production URL**: `https://terratile-git-main-<your-username>-projects.vercel.app/`
+### 1. Frontend (Netlify & Vercel)
+*   **Netlify Live Production URL**: `https://terratile.netlify.app/`
+*   **Vercel Live Production URL**: `https://terratile-git-main-spmummadi2301s-projects.vercel.app/`
 
 ### 2. Backend (Render)
 *   **Deploy**: Create a Python **Web Service** on Render pointing to your GitHub repo.
