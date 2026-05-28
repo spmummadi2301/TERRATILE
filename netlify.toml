@@ -1,0 +1,8 @@
+[build]
+  publish = "public"
+  command = "echo 'Building static console...'"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
