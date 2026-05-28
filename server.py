@@ -68,6 +68,46 @@ def recalculate_scores():
         if o_id and o_id in player_identities:
             player_identities[o_id]["score"] += 1
 
+# Calculate largest contiguous territory chain size using BFS on the server
+def get_max_connected_chain(player_id):
+    visited = set()
+    max_chain = 0
+    
+    for i in range(GRID_SIZE * GRID_SIZE):
+        tile = grid_state[i]
+        if tile["owner_id"] != player_id or i in visited:
+            continue
+            
+        # BFS
+        queue = [i]
+        visited.add(i)
+        component_size = 0
+        
+        while queue:
+            curr = queue.pop(0)
+            component_size += 1
+            
+            cx = curr % GRID_SIZE
+            cy = curr // GRID_SIZE
+            
+            # Check 4 neighbors
+            neighbors = []
+            if cy > 0: neighbors.append(curr - GRID_SIZE)
+            if cy < GRID_SIZE - 1: neighbors.append(curr + GRID_SIZE)
+            if cx > 0: neighbors.append(curr - 1)
+            if cx < GRID_SIZE - 1: neighbors.append(curr + 1)
+            
+            for n_id in neighbors:
+                n_tile = grid_state[n_id]
+                if n_tile["owner_id"] == player_id and n_id not in visited:
+                    visited.add(n_id)
+                    queue.append(n_id)
+                    
+        if component_size > max_chain:
+            max_chain = component_size
+            
+    return max_chain
+
 # Generate a cool geometric futuristic name
 def generate_cyber_name():
     prefixes = ["SPECTER", "VORTEX", "PHANTOM", "MATRIX", "VECTOR", "NEXUS", "KINETIC", "APEX", "CYPHER", "QUARK", "OSIRIS", "AETHER"]
@@ -236,13 +276,8 @@ async def handle_connection(websocket, path=None):
                     log_msg = f"{player['name']} CLAIMED UNCLAIMED ({x},{y})"
                 add_telemetry_log("claim", log_msg)
                 
-                # Broadcast the update to all clients
-                update_event = {
-                    "type": "tile_update",
-                    "tile": target_tile,
-                    "players": list(player_identities.values()),
-                    "logs": telemetry_logs
-                }
+                # Calculate longest connected chain of the claiming player
+                max_chain = get_max_connected_chain(player_id)
                 
                 # Send confirmation first (so client knows it succeeded immediately)
                 await websocket.send(json.dumps({
@@ -252,8 +287,43 @@ async def handle_connection(websocket, path=None):
                     "cooldown": COOLDOWN_TIME
                 }))
                 
-                # Broadcast state to everyone else
-                await broadcast(update_event)
+                # Check for 30 connected tiles victory
+                if max_chain >= 30:
+                    # Append a victory telemetry log
+                    vic_log = f"VICTORY SECURED BY {player['name'].upper()} WITH 30 CONNECTED TILES!"
+                    add_telemetry_log("sys", vic_log)
+                    
+                    # Store winning stats before wipe
+                    winner_info = {
+                        "id": player_id,
+                        "name": player["name"],
+                        "color": player["color"],
+                        "score": player["score"],
+                        "maxConnected": max_chain
+                    }
+                    
+                    # Autorun fresh board restart: wipe grid, clear scores
+                    init_grid()
+                    recalculate_scores()
+                    
+                    victory_event = {
+                        "type": "victory",
+                        "victor": winner_info,
+                        "grid": list(grid_state.values()),
+                        "players": list(player_identities.values()),
+                        "logs": telemetry_logs
+                    }
+                    
+                    await broadcast(victory_event)
+                else:
+                    # Broadcast normal update to all clients
+                    update_event = {
+                        "type": "tile_update",
+                        "tile": target_tile,
+                        "players": list(player_identities.values()),
+                        "logs": telemetry_logs
+                    }
+                    await broadcast(update_event)
                 
             elif msg_type == "profile_update":
                 if not player_id or player_id not in player_identities:

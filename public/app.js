@@ -598,6 +598,24 @@ function handleWSPacket(packet) {
       }
       break;
       
+    case 'victory':
+      // Sync the fresh wiped grid, players and logs
+      state.players = packet.players;
+      state.logs = packet.logs;
+      
+      packet.grid.forEach(cell => {
+        state.gridTiles[cell.id] = cell;
+        updateSingleTileDOM(cell.id, false);
+      });
+      
+      rebuildLeaderboard();
+      rebuildTelemetryFeed();
+      syncGlobalHUDMetrics();
+      
+      // Open the victory modal popup for all active operators
+      declareVictory(packet.victor);
+      break;
+      
     case 'claim_ack':
       if (packet.success) {
         playSynthStamp();
