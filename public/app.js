@@ -429,7 +429,14 @@ function connectWS() {
   // Dynamically target WS port based on active web host
   const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsHost = window.location.hostname || 'localhost';
-  const wsUri = state.wsGatewayUrl || `${wsProtocol}//${wsHost}:5174`;
+  
+  let defaultWsUri = `${wsProtocol}//${wsHost}:5174`;
+  // If running on a live cloud host (like Netlify or Vercel), route to Render backend by default
+  if (wsHost !== 'localhost' && wsHost !== '127.0.0.1' && !wsHost.startsWith('192.168.')) {
+    defaultWsUri = 'wss://terratile-backend.onrender.com';
+  }
+  
+  const wsUri = state.wsGatewayUrl || defaultWsUri;
   
   setConnectionStatus('connecting');
   
@@ -1099,6 +1106,9 @@ function initApp() {
   // System Bridge Gateway
   if (DOM.wsBridgeInput) {
     DOM.wsBridgeInput.value = state.wsGatewayUrl;
+    DOM.wsBridgeInput.placeholder = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+      ? 'ws://localhost:5174' 
+      : 'wss://terratile-backend.onrender.com';
     
     DOM.btnSaveBridge.addEventListener('click', () => {
       let gatewayVal = DOM.wsBridgeInput.value.trim();
