@@ -860,9 +860,9 @@ function syncGlobalHUDMetrics() {
   // --- VICTORY CONDITION CHECKS ---
   let victor = null;
   
-  // Victory Option A: Any player reaches 100 tiles (Highly visible victory target for easy testing!)
+  // Victory Option A: Any player reaches 20 tiles (Highly visible victory target for easy testing!)
   state.players.forEach(p => {
-    if (p.score >= 100) {
+    if (p.score >= 20) {
       victor = p;
     }
   });

@@ -673,12 +673,8 @@ input, button {
   color: var(--text-secondary);
 }
 
-/* Terminal Leaderboard */
 .panel-leaderboard {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  border-bottom: 1px solid var(--grid-line);
 }
 
 .leaderboard-header {
@@ -695,15 +691,15 @@ input, button {
 }
 
 .leaderboard-terminal {
-  flex: 1;
   font-family: var(--font-heading);
   font-size: 13px;
   letter-spacing: 0.05em;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding-right: 4px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .leaderboard-row {
