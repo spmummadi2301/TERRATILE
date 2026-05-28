@@ -2,14 +2,5 @@
   "name": "terratile",
   "version": "1.0.0",
   "private": true,
-  "description": "TERRATILE — Tactical Real-Time Conquest Engine",
-  "main": "server.js",
-  "scripts": {
-    "build": "echo 'Building static console...'",
-    "dev": "node server.js",
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2"
-  }
+  "description": "TERRATILE — Tactical Real-Time Conquest Engine"
 }
