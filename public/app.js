@@ -250,7 +250,7 @@ function declareVictory(victor) {
   state.victoryDeclared = true;
   
   DOM.vicName.innerText = victor.name;
-  DOM.vicScore.innerText = victor.score;
+  DOM.vicScore.innerText = `${victor.maxConnected || 30} connected (${victor.score} total)`;
   
   const totalTiles = state.gridSize * state.gridSize;
   const controlPercent = Math.round((victor.score / totalTiles) * 100);
@@ -262,7 +262,7 @@ function declareVictory(victor) {
   DOM.victoryModal.classList.add('active');
   
   playSynthVictoryChime();
-  showToast(`Conquest Victory: Operator ${victor.name} has secured matrix dominance!`, 'success');
+  showToast(`Tactical Victory: Operator ${victor.name} has built a connected territory of ${victor.maxConnected || 30} tiles!`, 'success');
 }
 
 // --- 4. NAVIGATION & ZOOM LOGIC (GRID VIEWPORT) ---
@@ -776,6 +776,62 @@ function triggerNeighborVibration(tileId) {
   });
 }
 
+// --- Contiguous BFS Graph calculation for 30 Connected Tiles Victory ---
+function getLargestConnectedTerritorySizes() {
+  const size = state.gridSize || 40;
+  const total = size * size;
+  const visited = new Set();
+  const maxConnected = {};
+  
+  // Initialize for all active players
+  state.players.forEach(p => {
+    maxConnected[p.id] = 0;
+  });
+  
+  for (let i = 0; i < total; i++) {
+    const tile = state.gridTiles[i];
+    if (!tile || !tile.owner_id || visited.has(i)) continue;
+    
+    const ownerId = tile.owner_id;
+    let componentSize = 0;
+    const queue = [i];
+    visited.add(i);
+    
+    while (queue.length > 0) {
+      const currId = queue.shift();
+      componentSize++;
+      
+      const cx = currId % size;
+      const cy = Math.floor(currId / size);
+      
+      const neighbors = [];
+      if (cy > 0) neighbors.push(currId - size);
+      if (cy < size - 1) neighbors.push(currId + size);
+      if (cx > 0) neighbors.push(currId - 1);
+      if (cx < size - 1) neighbors.push(currId + 1);
+      
+      neighbors.forEach(nId => {
+        const nTile = state.gridTiles[nId];
+        if (nTile && nTile.owner_id === ownerId && !visited.has(nId)) {
+          visited.add(nId);
+          queue.push(nId);
+        }
+      });
+    }
+    
+    maxConnected[ownerId] = Math.max(maxConnected[ownerId] || 0, componentSize);
+  }
+  
+  return maxConnected;
+}
+
+function calculateTerritoryMetrics() {
+  const maxConnectedSizes = getLargestConnectedTerritorySizes();
+  state.players.forEach(p => {
+    p.maxConnected = maxConnectedSizes[p.id] || 0;
+  });
+}
+
 // Leaderboard list generation using tactical typewriter typography
 function rebuildLeaderboard() {
   const container = DOM.leaderboardList;
@@ -786,8 +842,15 @@ function rebuildLeaderboard() {
     return;
   }
   
-  // Sort players by score descending
-  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  // Calculate largest connected chain size metrics for all players
+  calculateTerritoryMetrics();
+  
+  // Sort players by largest connected chain descending, with total score as a tie-breaker
+  const sorted = [...state.players].sort((a, b) => {
+    const diff = (b.maxConnected || 0) - (a.maxConnected || 0);
+    if (diff !== 0) return diff;
+    return b.score - a.score;
+  });
   
   sorted.forEach((player, index) => {
     const isMe = player.id === state.playerId;
@@ -804,7 +867,10 @@ function rebuildLeaderboard() {
           ${escapeHTML(player.name)} ${player.online_status === 'offline' ? '<span class="status-text">(AWAY)</span>' : ''}
         </span>
       </div>
-      <span class="leaderboard-score">${player.score}</span>
+      <span class="leaderboard-score" style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
+        <span style="font-weight: 700; font-size: 13px;">${player.maxConnected || 0} <span style="font-size: 8px; color: var(--text-secondary);">CHN</span></span>
+        <span style="font-size: 9px; color: var(--text-secondary);">${player.score} <span style="font-size: 7px;">TOT</span></span>
+      </span>
     `;
     
     container.appendChild(row);
@@ -857,22 +923,28 @@ function syncGlobalHUDMetrics() {
   });
   DOM.liveOperators.innerText = activeCount;
   
+  // Recalculate contiguous metrics for all active players
+  calculateTerritoryMetrics();
+  
   // --- VICTORY CONDITION CHECKS ---
   let victor = null;
   
-  // Victory Option A: Any player reaches 20 tiles (Highly visible victory target for easy testing!)
+  // Connected Territory Victory: First player to build a CONNECTED territory of 30 tiles wins!
   state.players.forEach(p => {
-    if (p.score >= 20) {
+    if (p.maxConnected >= 30) {
       victor = p;
     }
   });
   
-  // Victory Option B: All 1,600 tiles captured (Majority score wins!)
+  // Victory Option B: All 1,600 tiles captured (Majority contiguous chain size wins, with total score as tie-breaker!)
   if (conqueredCount === totalTiles && totalTiles > 0) {
-    let maxScore = -1;
+    let maxConnectedChain = -1;
+    let maxTotalScore = -1;
     state.players.forEach(p => {
-      if (p.score > maxScore) {
-        maxScore = p.score;
+      const chain = p.maxConnected || 0;
+      if (chain > maxConnectedChain || (chain === maxConnectedChain && p.score > maxTotalScore)) {
+        maxConnectedChain = chain;
+        maxTotalScore = p.score;
         victor = p;
       }
     });

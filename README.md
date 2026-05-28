@@ -32,9 +32,9 @@ TERRATILE is built on the principles of Swiss minimalism, geometric precision, a
 1.  **40x40 Real-Time Grid Matrix**: Renders 1,600 tiles dynamically. Select and claim tiles directly, or double-click to capture instantly.
 2.  **Operator Profile Editor (Your Digital Aura)**: Set custom operator nicknames and select strategic aura colors. Session states are persisted in `localStorage`.
 3.  **Live Telemetry Stock Ticker**: Displays a real-time terminal-style stock ticker logs feed of active grid conquest logs.
-4.  **Terminal Leaderboard**: Scoreboard lists operators sorted by captured tile scores in descending order.
+4.  **Terminal Leaderboard**: Scoreboard lists operators sorted by their **longest connected territory chain** in descending order, displaying active chain counts (CHN) and total tiles (TOT).
 5.  **Web Audio Synthesizer**: Custom synthesized acoustics (Tactical clicks, paper stamp stamp impact, warning alerts, and a rising victory chime arpeggio) generated programmatically in the browser.
-6.  **Conquest Victory Pop-up**: Automatically checks score metrics. Triggers an arpeggiated Victory Modal popup if any operator secures **20 tiles** (for instant testing!) or when all 1,600 tiles are conquered.
+6.  **Conquest Victory Pop-up**: Automatically checks score metrics. Triggers an arpeggiated Victory Modal popup once an operator successfully builds a **connected territory of 30 tiles** (connected horizontally/vertically) or when all 1,600 tiles are conquered.
 7.  **Cloud Bridge Integration**: A built-in connection gateway panel allowing you to point your static Vercel frontend to any local/cloud WebSocket backend on the fly.
 
 ---
