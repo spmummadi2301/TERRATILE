@@ -141,7 +141,7 @@ function playSynthClick() {
   osc.frequency.setValueAtTime(1400, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.015);
   
-  gain.gain.setValueAtTime(0.04, ctx.currentTime);
+  gain.gain.setValueAtTime(0.18, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.015);
   
   osc.start(ctx.currentTime);
@@ -166,7 +166,7 @@ function playSynthStamp() {
   oscBass.frequency.setValueAtTime(130, time);
   oscBass.frequency.exponentialRampToValueAtTime(45, time + 0.12);
   
-  gainBass.gain.setValueAtTime(0.4, time);
+  gainBass.gain.setValueAtTime(0.8, time);
   gainBass.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
   
   oscBass.start(time);
@@ -182,7 +182,7 @@ function playSynthStamp() {
   oscSnap.frequency.setValueAtTime(600, time);
   oscSnap.frequency.exponentialRampToValueAtTime(200, time + 0.04);
   
-  gainSnap.gain.setValueAtTime(0.12, time);
+  gainSnap.gain.setValueAtTime(0.28, time);
   gainSnap.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
   
   oscSnap.start(time);
@@ -205,7 +205,7 @@ function playSynthWarning() {
   osc.type = 'square';
   osc.frequency.setValueAtTime(140, ctx.currentTime);
   
-  gain.gain.setValueAtTime(0.08, ctx.currentTime);
+  gain.gain.setValueAtTime(0.22, ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
   
   osc.start(ctx.currentTime);
@@ -234,7 +234,7 @@ function playSynthVictoryChime() {
     osc.frequency.setValueAtTime(freq, now + idx * 0.08);
     
     gain.gain.setValueAtTime(0, now + idx * 0.08);
-    gain.gain.linearRampToValueAtTime(0.08, now + idx * 0.08 + 0.02);
+    gain.gain.linearRampToValueAtTime(0.22, now + idx * 0.08 + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
     
     osc.start(now + idx * 0.08);
@@ -673,16 +673,9 @@ function buildGridCanvasDOM(tilesList) {
     if (!tileElement) return;
     
     const tileId = parseInt(tileElement.dataset.tileId);
-    playSynthClick();
     selectTile(tileId);
-  });
-  
-  canvas.addEventListener('dblclick', (e) => {
-    const tileElement = e.target.closest('.grid-tile');
-    if (!tileElement) return;
     
-    const tileId = parseInt(tileElement.dataset.tileId);
-    selectTile(tileId);
+    // Auto-capture instantly on click! No extra button clicking required.
     triggerCaptureCommand();
   });
 }
@@ -981,6 +974,9 @@ function triggerLocalRateLimit(durationSec) {
   state.cooldownActive = true;
   DOM.btnCaptureTile.disabled = true;
   
+  const span = DOM.btnCaptureTile.querySelector('span');
+  if (span) span.innerText = 'SYSTEM COOLDOWN';
+  
   // Toggle shaking alerts if cooldown activated
   const selTile = document.getElementById(`tile-${state.selectedTileId}`);
   if (selTile) {
@@ -1003,6 +999,7 @@ function triggerLocalRateLimit(durationSec) {
       clearInterval(state.cooldownTimer);
       state.cooldownActive = false;
       DOM.btnCaptureTile.style.setProperty('--cooldown-percent', '0%');
+      if (span) span.innerText = 'READY FOR CONQUEST';
       
       const isOnline = socket && socket.readyState === WebSocket.OPEN;
       if (isOnline && state.selectedTileId !== null) {
